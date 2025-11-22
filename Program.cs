@@ -1,4 +1,12 @@
-﻿using System.Text;
+﻿/*
+ Készítsen egy C# konzol alkalmazást, amely magyar–angol szópárokat tartalmazó szótár segítségével segíti a felhasználót a szavak gyakorlásában. A programnak két üzemmódot kell biztosítania:
+
+- **Tanító üzemmód (T)**: A felhasználó megad egy magyar szót, és a program kiírja annak angol megfelelőjét, ha az szerepel a szótárban.
+- **Kikérdező üzemmód (K)**: A program véletlenszerűen kiválaszt egy magyar szót, és a felhasználónak meg kell adnia az angol fordítást. A program visszajelzést ad a válasz helyességéről.
+
+A szótár adatait a program CSV fájlban tárolja (szoparok.csv). Ha a fájl létezik, a program beolvassa induláskor a szópárokat. Ha nem, létrehoz egy alapértelmezett szótárat, majd elmenti azt a fájlba.
+ */
+using System.Text;
 namespace Szogyakorlo
 {
 	internal class Program
@@ -6,14 +14,10 @@ namespace Szogyakorlo
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Szógyakorló");
+			// Szótár létrehozása (magyar -> angol)
 			Dictionary<string, string> Szótár;
-			// Megnézem, hogy létezik-e a csv file. Ha igen, beolvasom a szótárt onnan. Ha nem, akkor feltöltöm a szótárt, és lementem csv-be.
-			if (!File.Exists("szoparok.csv"))
-			{
-				Szótár = Feltölt();
-				Lement("szoparok.csv", Szótár);
-			}
-			else
+			// Megnézzük, hogy létezik-e a csv file. Ha igen, beolvassuk a szótárt onnan. Ha nem, akkor feltöltjük a szótárt, és lementjük csv-be.
+			if (File.Exists("szoparok.csv"))
 			{
 				Szótár = new Dictionary<string, string>();
 				using (var sr = new StreamReader("szoparok.csv", Encoding.UTF8))
@@ -30,31 +34,43 @@ namespace Szogyakorlo
 					}
 				}
 			}
+			else
+			{
+				Szótár = Feltölt();
+				Lement("szoparok.csv", Szótár);
+			}
 
+			// Üzemmód választása: Tanító(T) vagy Kikérdező(K)
 			do
 			{
-				Console.Write("Tanító (T) vagy kikérdező (K) üzemmódban akarod-e használni? ");
-				var üzemmód = Console.ReadLine();
-				if (üzemmód == "T" || üzemmód == "t")
-					Tanít(Szótár);
-				else if (üzemmód == "K" || üzemmód == "k")
-					Kikérdez(Szótár);
-				else
-					break;
+					Console.Write("Tanító (T) vagy kikérdező (K) üzemmódban akarod-e használni? ");
+					var üzemmód = Console.ReadLine()?.ToLower();
+					if (üzemmód == "t")
+						Tanít(Szótár);
+					else if (üzemmód == "k")
+						Kikérdez(Szótár);
+					else
+						break;
 			} while (true);
 
 		}
 
+		/// <summary>
+		/// Szótár mentése CSV fájlba.
+		/// </summary>
 		private static void Lement(string fájlnév, Dictionary<string, string> szótár)
 		{
 			using (var sw = new StreamWriter(fájlnév,false,Encoding.UTF8))
 			{
 				foreach (var item in szótár)
 					sw.WriteLine($"{item.Key},{item.Value}");
-				//sw.Close();
 			}
 		}
 
+
+		/// <summary>
+		/// Kikérdező üzemmód: véletlenszerű magyar szót kérdez, felhasználó megadja az angol megfelelőjét.
+		/// </summary>
 		private static void Kikérdez(Dictionary<string, string> Szótár)
 		{
 			// Kikérdező rész
@@ -75,6 +91,9 @@ namespace Szogyakorlo
 			} while (újszó);
 		}
 
+		/// <summary>
+		/// Tanító üzemmód: felhasználó megad egy magyar szót, program kiírja az angol megfelelőjét.
+		/// </summary>
 		private static void Tanít(Dictionary<string, string> Szótár)
 		{
 			// Tanulási rész
@@ -89,11 +108,14 @@ namespace Szogyakorlo
 					Console.WriteLine($"{szó} angolul: {Szótár[szó]}");
 				else
 					Console.WriteLine("Nincs ilyen szó a szótárban.");
-				Console.Write("Szeretnél még kilépni a tanulási részből? (i/n) ");
+				Console.Write("Szeretnél kilépni a tanulási részből? (i/n) ");
 				kilépés = Console.ReadLine() == "i";
 			} while (!kilépés);
 		}
 
+		/// <summary>
+		/// Alapértelmezett szótár feltöltése.
+		/// </summary>
 		private static Dictionary<string, string> Feltölt()
 		{
 			Dictionary<string, string> Szótár = new Dictionary<string, string>
@@ -105,11 +127,13 @@ namespace Szogyakorlo
 				{ "szőlő", "grape" },
 				//{ "barack", "apricot" }
 			};
+			// Utólag módosítjuk a "barack" fordítását
 			Szótár["barack"] = "apricot";
-			//foreach (var item in Szótár)
-			//{
-			//	Console.WriteLine($"{item.Key} - {item.Value}");
-			//}
+			// Kiírjuk a szótár tartalmát
+			foreach (var item in Szótár)
+			{
+				Console.WriteLine($"{item.Key} - {item.Value}");
+			}
 			return Szótár;
 		}
 	}
